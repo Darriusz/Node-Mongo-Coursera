@@ -5,11 +5,13 @@ const dboper = require('./operations');
 const url = 'mongodb://localhost:27017/';
 const dbname = 'conFusion';
 
-MongoClient.connect(url, (err, client) => {
-	assert.equal(err, null);
-	console.log('Connected correctly to MongoDB server'); 
+//***************instead of the following we have dboper further below*******************
 
-	const db = client.db(dbname); //to connect tothe specified database
+// MongoClient.connect(url, (err, client) => {
+// 	assert.equal(err, null);
+// 	console.log('Connected correctly to MongoDB server'); 
+
+// 	const db = client.db(dbname); //to connect tothe specified database
 
 	// const collection = db.collection('dishes'); //dboper instead
 
@@ -31,29 +33,76 @@ MongoClient.connect(url, (err, client) => {
 	// 	});
 	// });
 
-	dboper.insertDocument(db, {name: "Pizza kapitanska", description: "bedzie z czasem"},
-		'dishes', (result) => {
-			console.log('Insert document:\n', result.ops);
+//***************instead of the following we have promises further below*******************
 
-			dboper.findDocuments(db, 'dishes', (docs) =>{
-				console.log('Found docs:\n', docs);
+// MongoClient.connect(url, (err, client) => {
+// 	assert.equal(err, null);
+// 	console.log('Connected correctly to MongoDB server'); 
 
-				dboper.updateDocument(db, {name: 'Pizza kapitanska'}, 
-					{description: 'The updated text'}, 'dishes', (result) => {
+// 	const db = client.db(dbname); //to connect tothe specified database
+
+// 	dboper.insertDocument(db, {name: "Pizza kapitanska", description: "bedzie z czasem"},
+// 		'dishes', (result) => {
+// 			console.log('Insert document:\n', result.ops);
+
+// 			dboper.findDocuments(db, 'dishes', (docs) =>{
+// 				console.log('Found docs:\n', docs);
+
+// 				dboper.updateDocument(db, {name: 'Pizza kapitanska'}, 
+// 					{description: 'The updated text'}, 'dishes', (result) => {
 
 
-						console.log('updated document:\n', result.result);
-						dboper.findDocuments(db, 'dishes', (docs) =>{
-							console.log('Found documents:\n', docs);
+// 						console.log('updated document:\n', result.result);
+// 						dboper.findDocuments(db, 'dishes', (docs) =>{
+// 							console.log('Found documents:\n', docs);
 
-							db.dropCollection('dishes', (result) =>{
-								console.log('Dropped Collection: ', result);
+// 							db.dropCollection('dishes', (result) =>{
+// 								console.log('Dropped Collection: ', result);
 
-								client.close();
-							});
-						});
-				});
-			});
+// 								client.close();
+// 							});
+// 						});
+// 				});
+// 			});
 
-	});
-});
+// 	});
+// });
+
+
+
+MongoClient.connect(url).then ((client) => {
+
+	console.log('Connected correctly to MongoDB server'); 
+
+	const db = client.db(dbname); //to connect tothe specified database
+
+	dboper.insertDocument(db, {name: "Pizza kapitanska", description: "bedzie z czasem"},'dishes')
+	.then((result) => {
+		console.log('Insert document:\n', result.ops);
+
+		return dboper.findDocuments(db, 'dishes');
+	})
+	.then((docs) => {
+		console.log('Found docs:\n', docs);
+
+		return dboper.updateDocument(db, {name: 'Pizza kapitanska'}, 
+			{description: 'The updated text'}, 'dishes');
+	})
+	.then((result) => {
+		console.log('updated document:\n', result.result);
+
+		return dboper.findDocuments(db, 'dishes');
+	})
+	.then((docs) => {
+		console.log('Found documents:\n', docs);
+
+		return db.dropCollection('dishes');
+	})
+	.then((result) => {
+		console.log('Dropped Collection: ', result);
+
+		client.close();
+	})
+	.catch((err) => console.log(err));
+})
+.catch((err) => console.log(err));
